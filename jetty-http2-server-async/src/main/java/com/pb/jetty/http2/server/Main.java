@@ -6,6 +6,8 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 /**
  *
@@ -17,7 +19,9 @@ public class Main {
     private static final String HOST = "localhost";
 
     public static void main(String[] args) throws Exception {
-        Server server = new Server();
+        QueuedThreadPool pool = new QueuedThreadPool(5);
+        pool.setName("server-pool");
+        Server server = new Server(pool);
 
         // HTTP connector
         HttpConfiguration http2Config = new HttpConfiguration();
@@ -31,7 +35,8 @@ public class Main {
         // set servlet handler
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");
-        context.addServlet(HelloServlet.class, "/hello-servlet");
+        ServletHolder asyncHolder = context.addServlet(HelloServlet.class, "/hello-servlet");
+        asyncHolder.setAsyncSupported(true);
         server.setHandler(context);
 
         server.start();
